@@ -58,55 +58,6 @@ module.exports = function(app, express) {
 	  });
 	});
 
-	apiRouter.post('/authenticate', function(req, res) {
-		console.log(req.body.username);
-
-	  // find the user
-	  User.findOne({
-	    username: req.body.username
-	  }).select('name username password').exec(function(err, user) {
-
-	    if (err) throw err;
-
-	    // no user with that username was found
-	    if (!user) {
-	      res.json({ 
-	      	success: false, 
-	      	message: 'Authentication failed. User not found.' 
-	  		});
-	    } else if (user) {
-
-	      // check if password matches
-	      var validPassword = user.comparePassword(req.body.password);
-	      if (!validPassword) {
-	        res.json({ 
-	        	success: false, 
-	        	message: 'Authentication failed. Wrong password.' 
-	    		});
-	      } else {
-
-	        // if user is found and password is right
-	        // create a token
-	        var token = jwt.sign({
-	        	name: user.name,
-	        	username: user.username
-	        }, superSecret, {
-	          expiresInMinutes: 1440 // expires in 24 hours
-	        });
-
-	        // return the information including token as JSON
-	        res.json({
-	          success: true,
-	          message: 'Enjoy your token!',
-	          token: token
-	        });
-	      }   
-
-	    }
-
-	  });
-	});
-
 	// route middleware to verify a token
 	apiRouter.use(function(req, res, next) {
 		// do logging
@@ -184,5 +135,52 @@ module.exports = function(app, express) {
 			});
 		});
 
+	// on routes that end in /users/:user_id
+	// ----------------------------------------------------
+	apiRouter.route('/users/:user_id')
 
+		// get the user with that id
+		.get(function(req, res) {
+			User.findById(req.params.user_id, function(err, user) {
+				if (err) res.send(err);
+
+				// return that user
+				res.json(user);
+			});
+		})
+
+		// update the user with this id
+		.put(function(req, res) {
+			User.findById(req.params.user_id, function(err, user) {
+
+				if (err) res.send(err);
+
+				// set the new user information if it exists in the request
+				if (req.body.name) user.name = req.body.name;
+				if (req.body.username) user.username = req.body.username;
+				if (req.body.password) user.password = req.body.password;
+
+				// save the user
+				user.save(function(err) {
+					if (err) res.send(err);
+
+					// return a message
+					res.json({ message: 'User updated!' });
+				});
+
+			});
+		})
+
+		// delete the user with this id
+		.delete(function(req, res) {
+			User.remove({
+				_id: req.params.user_id
+			}, function(err, user) {
+				if (err) res.send(err);
+
+				res.json({ message: 'Successfully deleted' });
+			});
+		});
+
+	return apiRouter;
 };
