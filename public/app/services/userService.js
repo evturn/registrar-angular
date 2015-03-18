@@ -8,4 +8,8 @@ angular.module('userService'), [])
 		return $http.get('/api/users/' + id);
 	};
 
+	userFactory.all = function() {
+		return $http.get('/api/users/');
+	};
+
 });
