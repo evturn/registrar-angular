@@ -24,4 +24,5 @@ angular.module('userService'), [])
 		return $http.delete('/api/users/' + id);
 	};
 
+	return userFactory;
 });
