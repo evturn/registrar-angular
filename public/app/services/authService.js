@@ -16,6 +16,25 @@ angular.module('authService', [])
 			});
 	};
 
+	authFactory.logout = function() {
+		
+		AuthToken.setToken();
+	};
+
+	authFactory.isLoggedIn = function() {
+		if (AuthToken.getToken()) 
+			return true;
+		else
+			return false;	
+	};
+
+	authFactory.getUser = function() {
+		if (AuthToken.getToken())
+			return $http.get('/api/me', { cache: true });
+		else
+			return $q.reject({ message: 'User has no token.' });		
+	};
+
 	return authFactory;
 
 })
