@@ -4,6 +4,18 @@ angular.module('authService', [])
 
 	var authFactory = {};
 
+	authFactory.login = function(username, password) {
+
+		return $http.post('/api/authenticate', {
+			username: username,
+			password: password
+		})
+			.success(function(data) {
+				AuthToken.setToken(data.token);
+       			return data;
+			});
+	};
+
 	return authFactory;
 
 })
